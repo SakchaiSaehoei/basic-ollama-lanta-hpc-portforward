@@ -8,7 +8,7 @@ This guide walks you through running the [Ollama](https://ollama.com) large lang
 
 | File               | Purpose                                       |
 | ------------------ | --------------------------------------------- |
-| `run_ollama.slurm` | SLURM script to start Ollama on a GPU node    |
+| `run_ollama_template.slurm` | SLURM script to start Ollama on a GPU node    |
 | `test_ollama.py`   | Python script to test model inference via API |
 | `ollama_client.py` | Reusable Python class to query Ollama API     |
 
@@ -16,31 +16,36 @@ This guide walks you through running the [Ollama](https://ollama.com) large lang
 
 ## 🚀 1. SLURM Script: `run_ollama.slurm`
 
-Submit this script via `sbatch run_ollama.slurm` to launch Ollama on a GPU node.
+Submit this script via `sbatch run_ollama_template.slurm` to launch Ollama on a GPU node.
 
 ```bash
 #!/bin/bash
-#SBATCH -p gpu
-#SBATCH -N 1 -c 32
-#SBATCH --gpus-per-node=4
-#SBATCH --ntasks-per-node=1
-#SBATCH -t 02:00:00
-#SBATCH -A lt200344
-#SBATCH -J ollama_server
-#SBATCH -o ollama_%j.log
-#SBATCH -e ollama_%j.log
+#SBATCH -p gpu                         # GPU partition
+#SBATCH -N 1                           # Number of nodes
+#SBATCH -c 32                          # Number of CPU cores
+#SBATCH --gpus-per-node=4             # Number of GPUs
+#SBATCH --ntasks-per-node=1           # One task per node
+#SBATCH -t 02:00:00                    # Job time limit (HH:MM:SS)
+#SBATCH -A your_project_code_here     # Replace with your project/account code
+#SBATCH -J ollama_server              # Job name
+#SBATCH -o ollama_output_%j.log       # Stdout log file (%j = job ID)
+#SBATCH -e ollama_output_%j.log       # Stderr log file (merged with stdout)
 
+# === Module and Environment Setup ===
 ml Mamba
-mamba activate fastapi
+mamba activate fastapi                # Activate your conda/mamba env
 
+# === Environment Variables ===
 export OLLAMA_HOST=http://0.0.0.0:11434
-export OLLAMA_MODEL=qwen3:14b
-export OLLAMA_MODELS=/project/lt200344-zhthmt/Y/OLLAMA_v0.5.7/models
-export PATH=$PATH:/project/lt200344-zhthmt/Y/OLLAMA/bin
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/project/lt200344-zhthmt/Y/OLLAMA/lib
+export OLLAMA_MODEL=qwen3:14b         # Change to any model you want to use
+export OLLAMA_MODELS=/path/to/ollama/models
+export PATH=$PATH:/path/to/ollama/bin
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/ollama/lib
 
-echo "✅ Ollama is starting on $OLLAMA_HOST"
+# === Start Ollama Server ===
+echo "✅ Starting Ollama server at $OLLAMA_HOST"
 ollama serve
+
 ```
 
 ---
@@ -50,7 +55,7 @@ ollama serve
 Once your SLURM job is running and you know the node name (e.g. `x1000c3s1b0n1`), run this **from your local machine**:
 
 ```bash
-ssh -L 11434:x1000c3s1b0n1:11434 ssaehoei@lanta.nstda.or.th -i id_rsa
+ssh -L 11434:x1000c3s1b0n1:11434 {USER_NAME}@lanta.nstda.or.th -i id_rsa
 ```
 
 > This maps `http://127.0.0.1:11434` on your laptop to the running Ollama server.
