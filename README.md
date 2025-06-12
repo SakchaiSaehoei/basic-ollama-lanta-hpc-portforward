@@ -31,7 +31,11 @@ Submit this script via `sbatch run_ollama_template.slurm` to launch Ollama on a 
 #SBATCH -o ollama_output_%j.log       # Stdout log file (%j = job ID)
 #SBATCH -e ollama_output_%j.log       # Stderr log file (merged with stdout)
 
-
+export USER=$(whoami)
+export node=$(hostname -s)
+echo "Assigned port: $port"
+echo "User: $USER"
+echo "Node: $node"
 
 # === Environment Variables ===
 export OLLAMA_HOST=http://0.0.0.0:11434
@@ -106,30 +110,26 @@ This reusable wrapper lets you query Ollama programmatically.
 ```python
 import requests
 
-class OllamaClient:
-    def __init__(self, host="http://127.0.0.1:11434", model="qwen3:14b"):
-        self.base_url = host
-        self.model = model
+url = "http://127.0.0.1:11434/api/generate"
 
-    def generate(self, prompt, stream=False):
-        url = f"{self.base_url}/api/generate"
-        payload = {
-            "model": self.model,
-            "prompt": prompt,
-            "stream": stream
-        }
-        try:
-            res = requests.post(url, json=payload)
-            res.raise_for_status()
-            return res.json().get("response")
-        except Exception as e:
-            print("❌ Error:", e)
-            return None
+payload = {
+    "model": "qwen3:14b",  # or another model like "tinyllama"
+    "prompt": "Hello, what can you do?",
+    "stream": False
+}
 
-# Example usage
-if __name__ == "__main__":
-    client = OllamaClient()
-    print(client.generate("Tell me a joke."))
+try:
+    response = requests.post(url, json=payload)
+    response.raise_for_status()
+
+    data = response.json()
+    print("✅ Success! Response from Ollama:")
+    print(data.get("response", data))
+
+except requests.exceptions.RequestException as e:
+    print("❌ Failed to connect or generate:")
+    print(e)
+
 ```
 
 ---
