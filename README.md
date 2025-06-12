@@ -31,9 +31,7 @@ Submit this script via `sbatch run_ollama_template.slurm` to launch Ollama on a 
 #SBATCH -o ollama_output_%j.log       # Stdout log file (%j = job ID)
 #SBATCH -e ollama_output_%j.log       # Stderr log file (merged with stdout)
 
-# === Module and Environment Setup ===
-ml Mamba
-mamba activate fastapi                # Activate your conda/mamba env
+
 
 # === Environment Variables ===
 export OLLAMA_HOST=http://0.0.0.0:11434
@@ -42,9 +40,27 @@ export OLLAMA_MODELS=/path/to/ollama/models
 export PATH=$PATH:/path/to/ollama/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/ollama/lib
 
+echo "OLLAMA_HOST: $OLLAMA_HOST"
+echo "OLLAMA_MODELS: $OLLAMA_MODELS"
+echo "OLLAMA_MODEL: $OLLAMA_MODEL"
+echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+echo "PATH: $PATH"
+
+# ==== for SSH port forwarding ====
+echo -e "Ollama-server is running on: $(hostname)
+Job starts at: $(date)
+Copy/Paste the following command into your local terminal
+--------------------------------------------------------------------
+"ssh -L 11434:${node}:11434 ${USER}@lanta.nstda.or.th -i id_rsa"
+--------------------------------------------------------------------
+"
+echo "✅ Ollama API available at $OLLAMA_HOST"
+
+
 # === Start Ollama Server ===
-echo "✅ Starting Ollama server at $OLLAMA_HOST"
+
 ollama serve
+
 
 ```
 
