@@ -10,6 +10,12 @@
 #SBATCH -o ollama_output_%j.log       # Stdout log file (%j = job ID)
 #SBATCH -e ollama_output_%j.log       # Stderr log file (merged with stdout)
 
+export USER=$(whoami)
+export node=$(hostname -s)
+echo "Assigned port: $port"
+echo "User: $USER"
+echo "Node: $node"
+
 
 # === Environment Variables ===
 export OLLAMA_HOST=http://0.0.0.0:11434
